@@ -1,0 +1,28 @@
+﻿.fishhook-suspicious-link {
+    border: 1px solid red !important;
+    padding: 2px !important;
+    background-color: white !important;
+    color: red !important;
+    text-decoration: underline;
+}
+.fishhook-suspicious-email-body {
+    border: 2px solid red !important;
+    padding: 2px !important;
+}
+.fishhook-email-body {
+    border: 2px solid green !important;
+    padding: 2px !important;
+}
+.fishhook-reminder {
+    display: block !important;
+    font-weight: bold !important;
+    color: red !important;
+    padding-bottom: 3px !important;
+}
+.fishhook-suspicious-attachment {
+    border: 2px solid red !important;
+    padding: 5px !important;
+    /*background-color: white !important;
+    color: red !important;
+    text-decoration: underline;*/
+}
