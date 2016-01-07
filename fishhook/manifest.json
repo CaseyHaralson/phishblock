@@ -16,7 +16,7 @@
     {
       "matches": [ "*://mail.google.com/*" ],
       "js": [ "jquery-1.11.3.min.js", "gmail.js" ],
-      "css":  ["gmail.css"]
+      "css": [ "gmail.css" ]
     }
   ]
 }

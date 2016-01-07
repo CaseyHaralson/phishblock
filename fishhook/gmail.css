@@ -1,21 +1,58 @@
-﻿.fishhook-suspicious-link {
+﻿.fishhook-suspicious-link,
+.fishhook-suspicious-email-body-message span {
     border: 1px solid red !important;
-    padding: 2px !important;
+    padding: 5px !important;
     background-color: white !important;
     color: red !important;
-    text-decoration: underline;
+    text-decoration: underline !important;
+    display: inline-block !important;
+    margin: 5px !important;
 }
+.fishhook-link,
+.fishhook-email-body-message span {
+    border: 1px dashed green !important;
+    padding: 5px !important;
+    /*background-color: white !important;
+    color: green !important;
+    text-decoration: underline !important;*/
+    display: inline-block !important;
+    margin: 5px !important;
+}
+
+
 .fishhook-suspicious-email-body {
     border: 2px solid red !important;
-    padding: 2px !important;
+    padding: 5px !important;
 }
 .fishhook-email-body {
     border: 2px solid green !important;
-    padding: 2px !important;
+    padding: 5px !important;
 }
-.fishhook-reminder {
+.fishhook-suspicious-email-body-message,
+.fishhook-email-body-message {
+    width: 100%;
+    text-align: center;
+}
+.fishhook-suspicious-email-body-message span,
+.fishhook-email-body-message span {
+    text-decoration: none !important;
+}
+.fishhook-email-body-message span {
+    color: green;
+}
+
+
+
+.fishhook-reminder-sender-address {
     display: block !important;
-    font-weight: bold !important;
+    /*font-weight: bold !important;*/
+    color: #800000 !important;
+    padding-bottom: 3px !important;
+}
+.fishhook-reminder-sender-address-suspicious,
+.fishhook-reminder-attachments {
+    display: block !important;
+    /*font-weight: bold !important;*/
     color: red !important;
     padding-bottom: 3px !important;
 }
