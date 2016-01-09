@@ -19,19 +19,19 @@
         emailBodyElementSelector = 'div.a3s',
         attachmentsAreaSelector = 'div>:contains("Attachments area"), div>:contains(" Attachments")'
 
-    // fishhook classes
-    var suspiciousLinkClass = 'fishhook-suspicious-link',
-        linkClass = 'fishhook-link',
-        suspiciousAttachmentClass = 'fishhook-suspicious-attachment',
-        suspiciousEmailBodyClass = 'fishhook-suspicious-email-body',
-        emailBodyClass = 'fishhook-email-body',
-        suspiciousBodyMessageClass = 'fishhook-suspicious-email-body-message',
-        bodyMessageClass = 'fishhook-email-body-message',
-        suspiciousAttachmentMessageClass = 'fishhook-reminder-attachments',
-        suspiciousSenderMessageClass = 'fishhook-reminder-sender-address-suspicious',
-        senderMessageClass = 'fishhook-reminder-sender-address';
+    // phishblock classes
+    var suspiciousLinkClass = 'phishblock-suspicious-link',
+        linkClass = 'phishblock-link',
+        suspiciousAttachmentClass = 'phishblock-suspicious-attachment',
+        suspiciousEmailBodyClass = 'phishblock-suspicious-email-body',
+        emailBodyClass = 'phishblock-email-body',
+        suspiciousBodyMessageClass = 'phishblock-suspicious-email-body-message',
+        bodyMessageClass = 'phishblock-email-body-message',
+        suspiciousAttachmentMessageClass = 'phishblock-reminder-attachments',
+        suspiciousSenderMessageClass = 'phishblock-reminder-sender-address-suspicious',
+        senderMessageClass = 'phishblock-reminder-sender-address';
 
-    // fishhook messages
+    // phishblock messages
     var suspiciousBodyMessageHtml = '<div class="' + suspiciousBodyMessageClass + '"><span>Suspicious links or information found!</span></div>',
         bodyMessageHtml = '<div class="' + bodyMessageClass + '"><span>No suspicious links found!</span></div>',
         suspiciousAttachmentMessageHtml = '<span class="' + suspiciousAttachmentMessageClass + '">** Make sure the attachment\'s extension (.jpg, .png, etc) is familiar and expected. **</span>',
@@ -261,12 +261,12 @@
     // END MAIN PROCESSING FUNCTION
 
 
-    log('attaching fishhook');
+    log('attaching phishblock');
     processOpenEmailSections();
 
 
     // listen to the open email section click
-    $(emailHeaderSelector).on('click.fishhook-emailHeader', function () {
+    $(emailHeaderSelector).on('click.phishblock-emailHeader', function () {
         setTimeout(processOpenEmailSections, 250);
     });
 
@@ -275,7 +275,7 @@
     function expandOrCollapseHiddenContentClickHandler() {
         setTimeout(processOpenEmailSections, 250);
     };
-    $(trimmedContentSelector).on('click.fishhook-trimmedContent', expandOrCollapseHiddenContentClickHandler);
+    $(trimmedContentSelector).on('click.phishblock-trimmedContent', expandOrCollapseHiddenContentClickHandler);
 
 
     // listen to the open middle collapsed emails click
@@ -285,15 +285,15 @@
         setTimeout(function () {
 
             // remove the old click handlers and add new ones
-            $(emailHeaderSelector).off('click.fishhook-emailHeader');
-            $(emailHeaderSelector).on('click.fishhook-emailHeader', function () {
+            $(emailHeaderSelector).off('click.phishblock-emailHeader');
+            $(emailHeaderSelector).on('click.phishblock-emailHeader', function () {
                 // another timer because the sections haven't been rendered yet
                 setTimeout(function () {
                     processOpenEmailSections();
 
                     // also need to listen to trimmed content expander
-                    $(trimmedContentSelector).off('click.fishhook-trimmedContent');
-                    $(trimmedContentSelector).on('click.fishhook-trimmedContent', expandOrCollapseHiddenContentClickHandler);
+                    $(trimmedContentSelector).off('click.phishblock-trimmedContent');
+                    $(trimmedContentSelector).on('click.phishblock-trimmedContent', expandOrCollapseHiddenContentClickHandler);
 
                 }, 250);
             });

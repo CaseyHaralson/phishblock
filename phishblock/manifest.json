@@ -1,7 +1,7 @@
 ﻿{
-  "name": "Fishhook",
-  "description": "Notice suspicious things in gmail",
-  "version": "0.1",
+  "name": "PhishBlock",
+  "description": "Helps to block phishing attempts through email",
+  "version": "0.0.0.1",
   "manifest_version": 2,
   "permissions": [
     

@@ -1,5 +1,5 @@
-﻿.fishhook-suspicious-link,
-.fishhook-suspicious-email-body-message span {
+﻿.phishblock-suspicious-link,
+.phishblock-suspicious-email-body-message span {
     border: 1px solid red !important;
     padding: 5px !important;
     background-color: white !important;
@@ -8,8 +8,8 @@
     display: inline-block !important;
     margin: 5px !important;
 }
-.fishhook-link-old,
-.fishhook-email-body-message span {
+.phishblock-link-old,
+.phishblock-email-body-message span {
     border: 1px dashed green !important;
     padding: 5px !important;
     /*background-color: white !important;
@@ -20,43 +20,43 @@
 }
 
 
-.fishhook-suspicious-email-body {
+.phishblock-suspicious-email-body {
     border: 2px solid red !important;
     padding: 5px !important;
 }
-.fishhook-email-body {
+.phishblock-email-body {
     border: 2px solid green !important;
     padding: 5px !important;
 }
-.fishhook-suspicious-email-body-message,
-.fishhook-email-body-message {
+.phishblock-suspicious-email-body-message,
+.phishblock-email-body-message {
     width: 100%;
     text-align: center;
 }
-.fishhook-suspicious-email-body-message span,
-.fishhook-email-body-message span {
+.phishblock-suspicious-email-body-message span,
+.phishblock-email-body-message span {
     text-decoration: none !important;
 }
-.fishhook-email-body-message span {
+.phishblock-email-body-message span {
     color: green;
 }
 
 
 
-.fishhook-reminder-sender-address {
+.phishblock-reminder-sender-address {
     display: block !important;
     /*font-weight: bold !important;*/
     color: #800000 !important;
     padding-bottom: 3px !important;
 }
-.fishhook-reminder-sender-address-suspicious,
-.fishhook-reminder-attachments {
+.phishblock-reminder-sender-address-suspicious,
+.phishblock-reminder-attachments {
     display: block !important;
     /*font-weight: bold !important;*/
     color: red !important;
     padding-bottom: 3px !important;
 }
-.fishhook-suspicious-attachment {
+.phishblock-suspicious-attachment {
     border: 2px solid red !important;
     padding: 5px !important;
     /*background-color: white !important;
