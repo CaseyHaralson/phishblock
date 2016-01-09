@@ -1,7 +1,7 @@
 ﻿{
   "name": "PhishBlock",
-  "description": "Helps to block phishing attempts through email",
-  "version": "0.0.0.1",
+  "description": "Helps to block phishing attempts through email.",
+  "version": "0.0.0.2",
   "manifest_version": 2,
   "permissions": [
     

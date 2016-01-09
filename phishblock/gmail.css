@@ -48,6 +48,7 @@
     /*font-weight: bold !important;*/
     color: #800000 !important;
     padding-bottom: 3px !important;
+    white-space: normal !important;
 }
 .phishblock-reminder-sender-address-suspicious,
 .phishblock-reminder-attachments {
@@ -55,6 +56,7 @@
     /*font-weight: bold !important;*/
     color: red !important;
     padding-bottom: 3px !important;
+    white-space: normal !important;
 }
 .phishblock-suspicious-attachment {
     border: 2px solid red !important;

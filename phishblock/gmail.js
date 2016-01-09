@@ -34,9 +34,9 @@
     // phishblock messages
     var suspiciousBodyMessageHtml = '<div class="' + suspiciousBodyMessageClass + '"><span>Suspicious links or information found!</span></div>',
         bodyMessageHtml = '<div class="' + bodyMessageClass + '"><span>No suspicious links found!</span></div>',
-        suspiciousAttachmentMessageHtml = '<span class="' + suspiciousAttachmentMessageClass + '">** Make sure the attachment\'s extension (.jpg, .png, etc) is familiar and expected. **</span>',
-        suspiciousSenderMessageHtml = '<span class="' + suspiciousSenderMessageClass  + '">** Make sure the email address below is from who you expect. **</span>',
-        senderMessageHtml = '<span class="' + senderMessageClass + '">** Make sure the email address below is from who you expect. **</span>';
+        suspiciousAttachmentMessageHtml = '<span class="' + suspiciousAttachmentMessageClass + '">** Make sure you know the sender and that the attachment\'s extension (.jpg, .png, etc) is familiar and expected. **</span>',
+        suspiciousSenderMessageHtml = '<div class="' + suspiciousSenderMessageClass  + '">** Make sure the email address below looks correct and is from who you expect. **</div>',
+        senderMessageHtml = '<div class="' + senderMessageClass + '">** Make sure the email address below looks correct and is from who you expect. **</div>';
 
 
 
