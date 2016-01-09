@@ -4,11 +4,11 @@
     padding: 5px !important;
     background-color: white !important;
     color: red !important;
-    text-decoration: underline !important;
+    /*text-decoration: underline !important;*/
     display: inline-block !important;
     margin: 5px !important;
 }
-.fishhook-link,
+.fishhook-link-old,
 .fishhook-email-body-message span {
     border: 1px dashed green !important;
     padding: 5px !important;
