@@ -28,6 +28,6 @@ Open the Chrome "Settings" page and click on the "Extensions" tab on the left pa
 Click on the "Developer mode" checkbox to make it checked.
 
 Click on the "Load unpacked extension..." button and navigate to the folder where you downloaded PhishBlock.
-If you cloned the repo, make sure the folder you select is the actual PhishBlock folder under the chromeplugins repo.
+Make sure the folder you select is the actual PhishBlock folder under the chromeplugins repo.
 
 Close and reopen any tabs that have Gmail open.
