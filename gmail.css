@@ -18,6 +18,10 @@
     display: inline-block !important;
     margin: 5px !important;
 }
+.phishblock-suspicious-email-body-message span,
+.phishblock-email-body-message span {
+    margin-bottom: 15px !important;
+}
 
 
 .phishblock-suspicious-email-body {
@@ -64,4 +68,20 @@
     /*background-color: white !important;
     color: red !important;
     text-decoration: underline;*/
+}
+
+
+.phishblock-onoffcontainer {
+    text-align: right;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+.phishblock-turnoff {
+    color: red;
+    cursor: pointer;
+}
+.phishblock-turnon {
+    color: green;
+    cursor: pointer;
+    font-weight: bold;
 }
