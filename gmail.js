@@ -14,7 +14,7 @@
         headerBlockLinkSelector = '.iv a', // header could be gE/iv/gt
         spanBlockLinkSelector = '.acS a',
         trimmedContentSelector = '.ajR',
-        trimmedContentLinkSelector = '.adL:hidden a',
+        trimmedContentLinkSelector = '.adL a:hidden',
         attachmentParentClass = 'aZo',
         emailBodyElementSelector = 'div.a3s',
         attachmentsAreaSelector = 'div>:contains("Attachments area"), div>:contains(" Attachments")'
@@ -67,8 +67,8 @@
         return $(emailBlock).find(linkSelector)
                         .not($(emailBlock).find(calendarBlockLinkSelector))
                         .not($(emailBlock).find(headerBlockLinkSelector))
-                        .not($(emailBlock).find(spanBlockLinkSelector))
-                        .not($(emailBlock).find(trimmedContentLinkSelector));
+                        .not($(emailBlock).find(spanBlockLinkSelector));
+                        //.not($(emailBlock).find(trimmedContentLinkSelector));
     };
     function setRemindersAndColors(emailBlock, emailBodyElement, senderEmailBlock) {
         var suspiciousLinkFound = false,
@@ -148,7 +148,7 @@
                 var emailBlock = emailBlocks[iBlocks],
                     emailBodyElement = $(emailBlock).find(emailBodyElementSelector);
 
-                if (!$(emailBlock).hasClass('phishblock-skipprocessing')) {
+                //if (!$(emailBlock).hasClass('phishblock-skipprocessing')) {
                     log('processing email block ' + (iBlocks + 1));
 
 
@@ -189,86 +189,87 @@
                         log('recipient email: ' + recipientEmail);
                     }
 
+                    if (!$(emailBlock).hasClass('phishblock-skipprocessing')) {
 
-                    // process each of the links in the email block
-                    // we have to do this multiple times (while loop) because we replace the tags and it removes any embedded links
-                    var iterations = 0;
-                    var linksInBlock = getLinksFromEmailBlock(emailBlock);
-                    while (linksInBlock.length > 0 && iterations < 5) {
-                        log('processing links');
-                        for (var iLink = 0; iLink < linksInBlock.length; iLink++) {
-                            var link = linksInBlock[iLink],
-                                linkHref = link.href,
-                                linkDomain = null,
-                                linkParent = link.parentElement;
+                        // process each of the links in the email block
+                        // we have to do this multiple times (while loop) because we replace the tags and it removes any embedded links
+                        var iterations = 0;
+                        var linksInBlock = getLinksFromEmailBlock(emailBlock);
+                        while (linksInBlock.length > 0 && iterations < 5) {
+                            log('processing links');
+                            for (var iLink = 0; iLink < linksInBlock.length; iLink++) {
+                                var link = linksInBlock[iLink],
+                                    linkHref = link.href,
+                                    linkDomain = null,
+                                    linkParent = link.parentElement;
 
-                            console.log('processing link: ' + linkHref);
+                                console.log('processing link: ' + linkHref);
 
-                            // the link domain
-                            if (linkHref != null && (linkHref.indexOf('http://') > -1 || linkHref.indexOf('https://') > -1)) {
-                                linkDomain = linkHref.replace('http://', '').replace('https://', '');
-                                if (linkDomain.indexOf('/') > -1) linkDomain = linkDomain.substring(0, linkDomain.indexOf('/'));
+                                // the link domain
+                                if (linkHref != null && (linkHref.indexOf('http://') > -1 || linkHref.indexOf('https://') > -1)) {
+                                    linkDomain = linkHref.replace('http://', '').replace('https://', '');
+                                    if (linkDomain.indexOf('/') > -1) linkDomain = linkDomain.substring(0, linkDomain.indexOf('/'));
 
-                                var linkDomainPieces = linkDomain.split('.');
-                                if (linkDomainPieces.length > 2) {
-                                    linkDomain = linkDomainPieces[linkDomainPieces.length - 2] + '.' + linkDomainPieces[linkDomainPieces.length - 1];
+                                    var linkDomainPieces = linkDomain.split('.');
+                                    if (linkDomainPieces.length > 2) {
+                                        linkDomain = linkDomainPieces[linkDomainPieces.length - 2] + '.' + linkDomainPieces[linkDomainPieces.length - 1];
+                                    }
                                 }
-                            }
 
 
-                            // make the link suspicious unless we say otherwise
-                            if (linkHref != null && linkHref.length > 0) $(link).addClass(suspiciousLinkClass);
+                                // make the link suspicious unless we say otherwise
+                                if (linkHref != null && linkHref.length > 0) $(link).addClass(suspiciousLinkClass);
 
 
-                            // compare the link domain to the sender domain and remove the suspicious flag if they match
-                            if (linkDomain != null && senderDomain.toLowerCase() == linkDomain.toLowerCase()) {
-                                $(link).removeClass(suspiciousLinkClass);
-                                $(link).addClass(linkClass);
-                            }
-                            // if the link is a mailto for the sender or recipient
-                            // remove the suspicious flag and make it a regular link
-                            if (linkHref != null && (linkHref.toLowerCase() == 'mailto:' + senderEmail.toLowerCase() || linkHref.toLowerCase() == 'mailto:' + recipientEmail.toLowerCase())) {
-                                $(link).removeClass(suspiciousLinkClass);
-                                $(link).addClass(linkClass);
-                            }
-                            // if the link parent has a download url, it is an attachment
-                            // move the suscpicious flag to the parent
-                            if (linkParent != null && (linkParent.attributes.hasOwnProperty('download_url') || $(linkParent).hasClass(attachmentParentClass))) {
-                                $(link).removeClass(suspiciousLinkClass);
-                                $(linkParent).addClass(suspiciousAttachmentClass);
-                            }
-
-
-                            // replace the link with a span (attachments stay as links)
-                            // include the class names if the link looks like a link
-                            $(link).replaceWith(function () {
-                                var looksLikeAlink = textLooksLikeALink(linkHref, $(this).text());
-                                if ($(this).hasClass(suspiciousLinkClass) && (looksLikeAlink || linkHref.indexOf('mailto:') > -1 || linkHref.indexOf('tel:') > -1)) {
-                                //if ($(this).hasClass(suspiciousLinkClass)) {
-                                    //log('suspicious link html: ' + $(link).html());
-                                    return '<span class="' + $(this).attr('class') + ' phishblock-suspicious-text phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') + '">' + $(this).html() + '</span>';
+                                // compare the link domain to the sender domain and remove the suspicious flag if they match
+                                if (linkDomain != null && senderDomain.toLowerCase() == linkDomain.toLowerCase()) {
+                                    $(link).removeClass(suspiciousLinkClass);
+                                    $(link).addClass(linkClass);
                                 }
-                                //else if (looksLikeAlink) {
-                                //    log('regular link html: ' + $(link).html());
-                                //    return '<span class="' + $(this).attr('class') + ' phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') + '">' + $(this).html() + '</span>';
-                                //}
-                                else {
-                                    //log('regular link html: ' + $(link).html());
-                                    return '<span class="' + $(this).attr('class') + ' phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') + '">' + $(this).html() + '</span>';
+                                // if the link is a mailto for the sender or recipient
+                                // remove the suspicious flag and make it a regular link
+                                if (linkHref != null && (linkHref.toLowerCase() == 'mailto:' + senderEmail.toLowerCase() || linkHref.toLowerCase() == 'mailto:' + recipientEmail.toLowerCase())) {
+                                    $(link).removeClass(suspiciousLinkClass);
+                                    $(link).addClass(linkClass);
                                 }
-                            });
+                                // if the link parent has a download url, it is an attachment
+                                // move the suscpicious flag to the parent
+                                if (linkParent != null && (linkParent.attributes.hasOwnProperty('download_url') || $(linkParent).hasClass(attachmentParentClass))) {
+                                    $(link).removeClass(suspiciousLinkClass);
+                                    $(linkParent).addClass(suspiciousAttachmentClass);
+                                }
+
+
+                                // replace the link with a span (attachments stay as links)
+                                // include the class names if the link looks like a link
+                                $(link).replaceWith(function () {
+                                    var looksLikeAlink = textLooksLikeALink(linkHref, $(this).text());
+                                    if ($(this).hasClass(suspiciousLinkClass) && (looksLikeAlink || linkHref.indexOf('mailto:') > -1 || linkHref.indexOf('tel:') > -1)) {
+                                        //if ($(this).hasClass(suspiciousLinkClass)) {
+                                        //log('suspicious link html: ' + $(link).html());
+                                        return '<span class="' + $(this).attr('class') + ' phishblock-suspicious-text phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') + '">' + $(this).html() + '</span>';
+                                    }
+                                        //else if (looksLikeAlink) {
+                                        //    log('regular link html: ' + $(link).html());
+                                        //    return '<span class="' + $(this).attr('class') + ' phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') + '">' + $(this).html() + '</span>';
+                                        //}
+                                    else {
+                                        //log('regular link html: ' + $(link).html());
+                                        return '<span class="' + $(this).attr('class') + ' phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') + '">' + $(this).html() + '</span>';
+                                    }
+                                });
+                            }
+
+                            iterations += 1;
+                            linksInBlock = getLinksFromEmailBlock(emailBlock);
                         }
-
-                        iterations += 1;
-                        linksInBlock = getLinksFromEmailBlock(emailBlock);
                     }
-
 
                     setRemindersAndColors(emailBlock, emailBodyElement, senderEmailBlock);
 
 
                     // add the ability to turn off checking for this email
-                    if ($(emailBlock).find('span.phishblock-turnoff').length == 0) {
+                    if ($(emailBlock).find('span.phishblock-turnoff').length == 0 && $(emailBlock).find('span.phishblock-turnon').length == 0) {
                         $('<div class="phishblock-onoffcontainer"><span class="phishblock-turnoff">PhishBlock: temporarily turn on links for this email section.</span></div>').insertBefore($(emailBodyElement));
                         var offbutton = $(emailBlock).find('span.phishblock-turnoff');
                         $(offbutton).off('click.phishblock-turnoff');
@@ -345,7 +346,7 @@
 
 
                     log('finished processing email block');
-                }
+                //}
 
 
 
