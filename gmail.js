@@ -54,11 +54,87 @@
         var looksLikeALink = urlRegex.test(text)
             || text.indexOf('www.') > -1 || text.indexOf('.com') > -1
             || text.indexOf('.net') > -1 || text.indexOf('.org') > -1
-            || text.indexOf('.co') > -1 ||
-            (url.indexOf(text) > -1 && text.indexOf('.') > -1);
+            || text.indexOf('.co') > -1 || text.indexOf('/') > -1
+            || (url.indexOf(text) > -1 && text.indexOf('.') > -1);
 
         log('text looks like a link: ' + looksLikeALink + '; text: ' + text);
         return looksLikeALink;
+    }
+
+
+
+    function getLinksFromEmailBlock(emailBlock) {
+        return $(emailBlock).find(linkSelector)
+                        .not($(emailBlock).find(calendarBlockLinkSelector))
+                        .not($(emailBlock).find(headerBlockLinkSelector))
+                        .not($(emailBlock).find(spanBlockLinkSelector))
+                        .not($(emailBlock).find(trimmedContentLinkSelector));
+    };
+    function setRemindersAndColors(emailBlock, emailBodyElement, senderEmailBlock) {
+        var suspiciousLinkFound = false,
+            suspiciousAttachmentFound = false;
+
+        // what suspicious stuff did we find?
+        if (emailBodyElement != null && ($(emailBodyElement).find('a.' + suspiciousLinkClass).not(':hidden').length > 0
+            || $(emailBodyElement).find('.phishblock-suspicious-text').not(':hidden').length > 0)) {
+            log('suspicious links found!');
+            suspiciousLinkFound = true;
+        }
+        if ($(emailBlock).find('.' + suspiciousAttachmentClass).not(':hidden').length > 0) {
+            log('suspicious attachments found!');
+            suspiciousAttachmentFound = true;
+        }
+
+        // clear previously set header and body classes/messages before we set them
+        // this allows us to run processing multiple times (expanding hidden sections, for example)
+        if (emailBodyElement != null) {
+            $(emailBodyElement).removeClass(suspiciousEmailBodyClass);
+            $(emailBodyElement).removeClass(emailBodyClass);
+        }
+        $(emailBlock).find('.' + suspiciousBodyMessageClass).remove();
+        $(emailBlock).find('.' + bodyMessageClass).remove();
+        $(emailBlock).find('.' + suspiciousSenderMessageClass).remove();
+        $(emailBlock).find('.' + senderMessageClass).remove();
+
+        // set the email body class and message
+        log('flagging email body');
+        if (emailBodyElement != null) {
+            if (!$(emailBodyElement).hasClass(suspiciousEmailBodyClass) && !$(emailBodyElement).hasClass(emailBodyClass)) {
+                if (suspiciousLinkFound) {
+                    $(emailBodyElement).addClass(suspiciousEmailBodyClass);
+                    $(emailBodyElement).prepend(suspiciousBodyMessageHtml);
+                }
+                else {
+                    $(emailBodyElement).addClass(emailBodyClass);
+                    $(emailBodyElement).prepend(bodyMessageHtml);
+                }
+            }
+        }
+
+        // set a reminder to check attachments
+        log('flagging attachment section');
+        if ($(emailBlock).find('.' + suspiciousAttachmentClass).length > 0) {
+            var attachmentsArea = $(emailBlock).find(attachmentsAreaSelector);
+            if (attachmentsArea != null && attachmentsArea.length > 0) {
+                for (var iAttachmentsArea = 0; iAttachmentsArea < attachmentsArea.length; iAttachmentsArea++) {
+                    var area = attachmentsArea[iAttachmentsArea];
+                    if ($(emailBlock).find('.' + suspiciousAttachmentMessageClass).length == 0) {
+                        $(area.parentElement).prepend(suspiciousAttachmentMessageHtml);
+                    }
+                }
+            }
+        }
+
+        // set a reminder to check the sender address
+        log('flagging sender block');
+        if (senderEmailBlock != null && ($(senderEmailBlock).find('.' + senderMessageClass).length == 0 && $(senderEmailBlock).find('.' + suspiciousSenderMessageClass).length == 0)) {
+            if (suspiciousLinkFound || suspiciousAttachmentFound) {
+                $(senderEmailBlock).prepend(suspiciousSenderMessageHtml);
+            }
+            else {
+                $(senderEmailBlock).prepend(senderMessageHtml);
+            }
+        }
     }
 
 
@@ -73,7 +149,6 @@
                     emailBodyElement = $(emailBlock).find(emailBodyElementSelector);
 
                 if (!$(emailBlock).hasClass('phishblock-skipprocessing')) {
-
                     log('processing email block ' + (iBlocks + 1));
 
 
@@ -81,9 +156,7 @@
                         senderEmail = null,
                         senderDomain = null,
                         senderSubdomain = null,
-                        recipientEmail = null,
-                        suspiciousLinkFound = false,
-                        suspiciousAttachmentFound = false;
+                        recipientEmail = null;
 
 
                     // sender info and area selection
@@ -118,12 +191,10 @@
 
 
                     // process each of the links in the email block
-                    var linksInBlock = $(emailBlock).find(linkSelector)
-                        .not($(emailBlock).find(calendarBlockLinkSelector))
-                        .not($(emailBlock).find(headerBlockLinkSelector))
-                        .not($(emailBlock).find(spanBlockLinkSelector))
-                        .not($(emailBlock).find(trimmedContentLinkSelector));
-                    if (linksInBlock != null && linksInBlock.length > 0) {
+                    // we have to do this multiple times (while loop) because we replace the tags and it removes any embedded links
+                    var iterations = 0;
+                    var linksInBlock = getLinksFromEmailBlock(emailBlock);
+                    while (linksInBlock.length > 0 && iterations < 5) {
                         log('processing links');
                         for (var iLink = 0; iLink < linksInBlock.length; iLink++) {
                             var link = linksInBlock[iLink],
@@ -172,95 +243,33 @@
                             // include the class names if the link looks like a link
                             $(link).replaceWith(function () {
                                 var looksLikeAlink = textLooksLikeALink(linkHref, $(this).text());
-                                //if ($(this).hasClass(suspiciousLinkClass) && (looksLikeAlink || linkHref.indexOf('mailto:') > -1 || linkHref.indexOf('tel:') > -1)) {
-                                if ($(this).hasClass(suspiciousLinkClass)) {
-                                    log('suspicious link html: ' + $(link).html());
-                                    return '<span class="' + $(this).attr('class') + ' phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') +'">' + $(this).html() + '</span>';
+                                if ($(this).hasClass(suspiciousLinkClass) && (looksLikeAlink || linkHref.indexOf('mailto:') > -1 || linkHref.indexOf('tel:') > -1)) {
+                                //if ($(this).hasClass(suspiciousLinkClass)) {
+                                    //log('suspicious link html: ' + $(link).html());
+                                    return '<span class="' + $(this).attr('class') + ' phishblock-suspicious-text phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') + '">' + $(this).html() + '</span>';
                                 }
-                                else if (looksLikeAlink) {
-                                    log('regular link html: ' + $(link).html());
-                                    return '<span class="' + $(this).attr('class') + ' phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') + '">' + $(this).html() + '</span>';
-                                }
+                                //else if (looksLikeAlink) {
+                                //    log('regular link html: ' + $(link).html());
+                                //    return '<span class="' + $(this).attr('class') + ' phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') + '">' + $(this).html() + '</span>';
+                                //}
                                 else {
-                                    return '<span class="phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') + '">' + $(this).html() + '</span>';
+                                    //log('regular link html: ' + $(link).html());
+                                    return '<span class="' + $(this).attr('class') + ' phishblock-linkreplacement" data-phishblock-replacedhref="' + linkHref + '" style="' + $(this).attr('style') + '">' + $(this).html() + '</span>';
                                 }
                             });
                         }
+
+                        iterations += 1;
+                        linksInBlock = getLinksFromEmailBlock(emailBlock);
                     }
 
 
-
-                    // what suspicious stuff did we find?
-                    if (emailBodyElement != null && $(emailBodyElement).find('.' + suspiciousLinkClass).not(':hidden').length > 0) {
-                        log('suspicious links found!');
-                        suspiciousLinkFound = true;
-                    }
-                    if ($(emailBlock).find('.' + suspiciousAttachmentClass).not(':hidden').length > 0) {
-                        log('suspicious attachments found!');
-                        suspiciousAttachmentFound = true;
-                    }
-
-
-
-                    // clear previously set header and body classes/messages before we set them
-                    // this allows us to run processing multiple times (expanding hidden sections, for example)
-                    if (emailBodyElement != null) {
-                        $(emailBodyElement).removeClass(suspiciousEmailBodyClass);
-                        $(emailBodyElement).removeClass(emailBodyClass);
-                    }
-                    $(emailBlock).find('.' + suspiciousBodyMessageClass).remove();
-                    $(emailBlock).find('.' + bodyMessageClass).remove();
-                    $(emailBlock).find('.' + suspiciousSenderMessageClass).remove();
-                    $(emailBlock).find('.' + senderMessageClass).remove();
-
-
-
-                    // set the email body class and message
-                    log('flagging email body');
-                    if (emailBodyElement != null) {
-                        if (!$(emailBodyElement).hasClass(suspiciousEmailBodyClass) && !$(emailBodyElement).hasClass(emailBodyClass)) {
-                            if (suspiciousLinkFound) {
-                                $(emailBodyElement).addClass(suspiciousEmailBodyClass);
-                                $(emailBodyElement).prepend(suspiciousBodyMessageHtml);
-                            }
-                            else {
-                                $(emailBodyElement).addClass(emailBodyClass);
-                                $(emailBodyElement).prepend(bodyMessageHtml);
-                            }
-                        }
-                    }
-
-
-                    // set a reminder to check attachments
-                    log('flagging attachment section');
-                    if ($(emailBlock).find('.' + suspiciousAttachmentClass).length > 0) {
-                        var attachmentsArea = $(emailBlock).find(attachmentsAreaSelector);
-                        if (attachmentsArea != null && attachmentsArea.length > 0) {
-                            for (var iAttachmentsArea = 0; iAttachmentsArea < attachmentsArea.length; iAttachmentsArea++) {
-                                var area = attachmentsArea[iAttachmentsArea];
-                                if ($(emailBlock).find('.' + suspiciousAttachmentMessageClass).length == 0) {
-                                    $(area.parentElement).prepend(suspiciousAttachmentMessageHtml);
-                                }
-                            }
-                        }
-                    }
-
-
-                    // set a reminder to check the sender address
-                    log('flagging sender block');
-                    if (senderEmailBlock != null && ($(senderEmailBlock).find('.' + senderMessageClass).length == 0 && $(senderEmailBlock).find('.' + suspiciousSenderMessageClass).length == 0)) {
-                        if (suspiciousLinkFound || suspiciousAttachmentFound) {
-                            $(senderEmailBlock).prepend(suspiciousSenderMessageHtml);
-                        }
-                        else {
-                            $(senderEmailBlock).prepend(senderMessageHtml);
-                        }
-                    }
+                    setRemindersAndColors(emailBlock, emailBodyElement, senderEmailBlock);
 
 
                     // add the ability to turn off checking for this email
                     if ($(emailBlock).find('span.phishblock-turnoff').length == 0) {
-                        $('<div class="phishblock-onoffcontainer"><span class="phishblock-turnoff">Temporarily turn off PhishBlock for this email section.</span></div>').insertAfter($(emailBodyElement));
+                        $('<div class="phishblock-onoffcontainer"><span class="phishblock-turnoff">PhishBlock: temporarily turn on links for this email section.</span></div>').insertBefore($(emailBodyElement));
                         var offbutton = $(emailBlock).find('span.phishblock-turnoff');
                         $(offbutton).off('click.phishblock-turnoff');
                         $(offbutton).on('click.phishblock-turnoff', function () {
@@ -269,34 +278,53 @@
                                 var emailBlock = emailBlocks[0],
                                     emailBodyElement = $(emailBlock).find(emailBodyElementSelector);
 
-                                $(emailBodyElement).removeClass(suspiciousEmailBodyClass);
-                                $(emailBodyElement).removeClass(emailBodyClass);
-                                $(emailBlock).find('.' + suspiciousBodyMessageClass).remove();
-                                $(emailBlock).find('.' + bodyMessageClass).remove();
-                                $(emailBlock).find('.' + suspiciousSenderMessageClass).remove();
-                                $(emailBlock).find('.' + senderMessageClass).remove();
-
-                                $(emailBlock).find('.' + suspiciousAttachmentMessageClass).remove();
-                                $(emailBlock).find('.' + suspiciousAttachmentClass).removeClass(suspiciousAttachmentClass);
-                                
-
                                 // replace links
+                                var iterations = 0;
                                 var linksInBlock = $(emailBlock).find('.phishblock-linkreplacement');
-                                for (var iLink = 0; iLink < linksInBlock.length; iLink++) {
-                                    var link = linksInBlock[iLink];
-                                    $(link).replaceWith(function () {
-                                        return '<a href="' + $(this).attr("data-phishblock-replacedhref") + '" class="'
-                                            + $(this).attr('class').replace('phishblock-linkreplacement', '').replace(linkClass, '').replace(suspiciousLinkClass, '') + '" style="'
-                                            + $(this).attr('style') + '">'
-                                            + $(this).html() + '</a>';
-                                    });
+                                while (linksInBlock.length > 0 && iterations < 5) {
+                                    for (var iLink = 0; iLink < linksInBlock.length; iLink++) {
+                                        var link = linksInBlock[iLink];
+                                        $(link).replaceWith(function () {
+                                            return '<a href="' + $(this).attr("data-phishblock-replacedhref") + '" class="'
+                                                + $(this).attr('class').replace('phishblock-linkreplacement', '').replace('phishblock-suspicious-text', '') + '" style="'
+                                                + $(this).attr('style') + '">'
+                                                + $(this).html() + '</a>';
+                                        });
+                                    }
+
+                                    iterations += 1;
+                                    linksInBlock = $(emailBlock).find('.phishblock-linkreplacement');
                                 }
 
+                                // reset reminders and colors
+                                var senderEmailBlock,
+                                    senderDomain = null,
+                                    senderSubdomain = null;
+                                var senderElement = $(emailBlock).find(senderElementSelector);
+                                if (senderElement != null && senderElement.length > 0 && senderElement[0].attributes.hasOwnProperty('email')) {
+                                    senderEmail = senderElement[0].attributes['email'].value;
+                                    senderEmailBlock = senderElement[0].parentElement;
+                                    log('sender email: ' + senderEmail);
+
+
+                                    if (senderEmail.indexOf('@') > -1) {
+                                        senderDomain = senderSubdomain = senderEmail.substring(senderEmail.indexOf('@') + 1);
+                                        var domainPieces = senderDomain.split('.');
+                                        if (domainPieces.length > 2) {
+                                            senderDomain = domainPieces[domainPieces.length - 2] + '.' + domainPieces[domainPieces.length - 1];
+                                        }
+                                    }
+                                }
+                                setRemindersAndColors(emailBlock, emailBodyElement, senderEmailBlock);
+
+                                // let phishblock know to not reprocess this block
                                 $(emailBlock).addClass('phishblock-skipprocessing');
 
                                 // add the ability to turn blocking back on
                                 $(this).replaceWith(function () {
-                                    return '<span class="phishblock-turnon">Turn PhishBlock back on for this email section!</span>';
+                                    return '<div class="phishblock-links-on-warning">Links to ' + senderDomain + ' are bordered in green dashes.</div>'
+                                        + '<div class="phishblock-links-on-warning"><strong>Links that dont go to ' + senderDomain + '</strong> are bordered in red.</div>'
+                                        + '<span class="phishblock-turnon">PhishBlock: turn link blocking back on for this email section!</span>';
                                 });
                                 $(emailBlock).find('span.phishblock-turnoff').remove();
                                 var onbutton = $(emailBlock).find('span.phishblock-turnon');
@@ -305,7 +333,8 @@
                                     var emailBlocks = $(emailBlockSelector).has($(this));
                                     if (emailBlocks != null && emailBlocks.length == 1) {
                                         var emailBlock = emailBlocks[0];
-                                        $(emailBlock).find('span.phishblock-turnon').remove();
+                                        $(emailBlock).find('.phishblock-turnon').remove();
+                                        $(emailBlock).find('.phishblock-links-on-warning').remove();
                                         $(emailBlock).removeClass('phishblock-skipprocessing');
                                         processOpenEmailSections();
                                     }

@@ -1,4 +1,5 @@
-﻿.phishblock-suspicious-link,
+﻿a.phishblock-suspicious-link,
+.phishblock-suspicious-text,
 .phishblock-suspicious-email-body-message span {
     border: 1px solid red !important;
     padding: 5px !important;
@@ -8,7 +9,7 @@
     display: inline-block !important;
     margin: 5px !important;
 }
-.phishblock-link-old,
+a.phishblock-link,
 .phishblock-email-body-message span {
     border: 1px dashed green !important;
     padding: 5px !important;
@@ -84,4 +85,11 @@
     color: green;
     cursor: pointer;
     font-weight: bold;
+    margin-top: 10px;
+    display: inline-block;
+}
+
+.phishblock-links-on-warning {
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
