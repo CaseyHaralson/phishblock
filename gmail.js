@@ -42,7 +42,7 @@
 
     // helpful functions
     function log(message) {
-        console.log(message);
+        //console.log(message);
     }
     function textLooksLikeALink(url, text) {
         if (text == null || text.length == 0) {
